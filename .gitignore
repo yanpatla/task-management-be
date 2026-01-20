@@ -1,0 +1,75 @@
+# =========================
+# Dependencies
+# =========================
+node_modules/
+
+# =========================
+# Build / Output
+# =========================
+dist/
+build/
+out/
+lib/
+*.tsbuildinfo
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Env / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# =========================
+# Coverage / Testing
+# =========================
+coverage/
+.nyc_output/
+*.lcov
+
+# =========================
+# Runtime / Temp
+# =========================
+tmp/
+temp/
+.cache/
+
+# =========================
+# MongoDB (local)
+# =========================
+data/
+mongo-data/
+dump/
+*.bson
+*.archive
+*.lock
+
+# =========================
+# Docker
+# =========================
+.docker/
+docker-data/
+
+# =========================
+# Misc
+# =========================
+*.pem
+*.key
