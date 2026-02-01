@@ -5,9 +5,12 @@ import { handleInputErrors } from "../middleware/validation";
 import { TaskController } from "../controllers/TaskController";
 import { projectExists } from "../middleware/project";
 import { taskBelongsToProject, taskExists } from "../middleware/task";
+import { authenticate } from "../middleware/auth";
+import { TeamMemberController } from "../controllers/TeamControllers";
 
 const router = Router();
 
+router.use(authenticate);
 router.post(
   "/",
   body("projectName").notEmpty().withMessage("The Project name is mandatory"),
@@ -82,4 +85,10 @@ router.post(
   TaskController.updateStatus,
 );
 
+router.post(
+  "/:projectId/team/find",
+  body("email").isEmail().toLowerCase().withMessage("Not valid E-mail"),
+  handleInputErrors,
+  TeamMemberController.findMemberByEmail
+);
 export default router;
