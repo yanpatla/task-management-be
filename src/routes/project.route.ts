@@ -4,9 +4,14 @@ import { body, param } from "express-validator";
 import { handleInputErrors } from "../middleware/validation";
 import { TaskController } from "../controllers/TaskController";
 import { projectExists } from "../middleware/project";
-import { taskBelongsToProject, taskExists } from "../middleware/task";
+import {
+  hasAuthorization,
+  taskBelongsToProject,
+  taskExists,
+} from "../middleware/task";
 import { authenticate } from "../middleware/auth";
 import { TeamMemberController } from "../controllers/TeamControllers";
+import { NoteController } from "../controllers/NoteController";
 
 const router = Router();
 
@@ -47,12 +52,14 @@ router.delete(
 router.param("projectId", projectExists);
 router.post(
   "/:projectId/tasks",
+  hasAuthorization,
   body("name").notEmpty().withMessage("The Task name is mandatory"),
   body("description").notEmpty().withMessage("The description is mandatory"),
   handleInputErrors,
   TaskController.createTask,
 );
 router.get("/:projectId/tasks", TaskController.getProjectTasks);
+
 router.param("taskId", taskExists);
 router.param("taskId", taskBelongsToProject);
 router.get(
@@ -64,6 +71,7 @@ router.get(
 
 router.put(
   "/:projectId/tasks/:taskId",
+  hasAuthorization,
   param("taskId").isMongoId().withMessage("Not valid ID"),
   body("name").notEmpty().withMessage("The Task name is mandatory"),
   body("description").notEmpty().withMessage("The description is mandatory"),
@@ -72,6 +80,7 @@ router.put(
 );
 router.delete(
   "/:projectId/tasks/:taskId",
+  hasAuthorization,
   param("taskId").isMongoId().withMessage("Not valid ID"),
   handleInputErrors,
   TaskController.deleteTask,
@@ -89,6 +98,43 @@ router.post(
   "/:projectId/team/find",
   body("email").isEmail().toLowerCase().withMessage("Not valid E-mail"),
   handleInputErrors,
-  TeamMemberController.findMemberByEmail
+  TeamMemberController.findMemberByEmail,
 );
+router.get(
+  "/:projectId/team",
+  handleInputErrors,
+  TeamMemberController.getProjectTeam,
+);
+router.post(
+  "/:projectId/team",
+  body("id").isMongoId().withMessage("Not valid ID"),
+  handleInputErrors,
+  TeamMemberController.addMemberById,
+);
+router.delete(
+  "/:projectId/team/:userId",
+  param("userId").isMongoId().withMessage("Not valid ID"),
+  handleInputErrors,
+  TeamMemberController.removeMemberById,
+);
+
+/** Notes */
+router.post(
+  "/:projectId/tasks/:taskId/notes",
+  body("content").notEmpty().withMessage("The content is required"),
+  handleInputErrors,
+  NoteController.createNote,
+);
+router.get(
+  "/:projectId/tasks/:taskId/notes",
+  handleInputErrors,
+  NoteController.getTaskNotes,
+);
+router.delete(
+  "/:projectId/tasks/:taskId/notes/:noteId",
+  param("noteId").isMongoId().withMessage("Not valid ID"),
+  handleInputErrors,
+  NoteController.deleteNotes,
+);
+
 export default router;

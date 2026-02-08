@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Task from "../models/Task";
+import Task, { taskStatus } from "../models/Task";
 
 export class TaskController {
   static createTask = async (req: Request, res: Response) => {
@@ -26,7 +26,16 @@ export class TaskController {
 
   static getTaskById = async (req: Request, res: Response) => {
     try {
-      res.json(req.task);
+      const task = await Task.findById(req.task._id)
+        .populate({
+          path: "completedBy.user",
+          select: "_id name email ",
+        })
+        .populate({
+          path: "notes",
+          populate: { path: "createdBy", select: "_id name email " },
+        });
+      res.json(task);
     } catch (error) {
       res.status(500).json({ error: "An error ocurred" });
     }
@@ -56,6 +65,12 @@ export class TaskController {
     try {
       const { status } = req.body;
       req.task.status = status;
+
+      const data = {
+        user: req.user._id,
+        status,
+      };
+      req.task.completedBy.push(data);
       await req.task.save();
       res.send("Task status updated");
     } catch (error) {
