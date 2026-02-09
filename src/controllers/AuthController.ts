@@ -181,4 +181,60 @@ export class AuthController {
   static user = async (req: Request, res: Response) => {
     return res.json(req.user);
   };
+  static updateProfile = async (req: Request, res: Response) => {
+    const { name, email } = req.body;
+
+    const userExists = await User.findOne({ email });
+    if (userExists && userExists._id.toString() !== req.user._id.toString()) {
+      const error = new Error("Email already taken");
+      return res.status(409).json({ error: error.message });
+    }
+    req.user.name = name;
+    req.user.email = email;
+    try {
+      await req.user.save();
+      return res.send("Profile update was successfully");
+    } catch (error) {
+      return res.status(500).json({ error: "There was an error" });
+    }
+  };
+  static updateCurrentUserPassword = async (req: Request, res: Response) => {
+    const { current_password, password } = req.body;
+    try {
+      const user = await User.findById(req.user._id);
+
+      const isPasswordCorrect = await checkPassword(
+        current_password,
+        user.password,
+      );
+
+      if (!isPasswordCorrect) {
+        const error = new Error("The current password is not correct");
+        return res.status(401).json({ error: error.message });
+      }
+
+      user.password = await hashPassword(password);
+      await user.save();
+      return res.send("Password update was successfully");
+    } catch (error) {
+      return res.status(500).json({ error: "There was an error" });
+    }
+  };
+  static checkPassword = async (req: Request, res: Response) => {
+    const { password } = req.body;
+    try {
+      const user = await User.findById(req.user._id);
+
+      const isPasswordCorrect = await checkPassword(password, user.password);
+
+      if (!isPasswordCorrect) {
+        const error = new Error("The  password is not correct");
+        return res.status(401).json({ error: error.message });
+      }
+
+      return res.send("Correct Password");
+    } catch (error) {
+      return res.status(500).json({ error: "There was an error" });
+    }
+  };
 }

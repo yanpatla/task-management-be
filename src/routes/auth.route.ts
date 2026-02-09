@@ -71,9 +71,42 @@ router.post(
   AuthController.updatePasswordWithToken,
 );
 
-router.get("/",
+router.get("/", authenticate, AuthController.user);
 
+/** Profile */
+
+router.put(
+  "/profile",
   authenticate,
-  AuthController.user
-)
+  body("name").notEmpty().withMessage("The name is required"),
+  body("email").isEmail().withMessage("Not valid E-mail"),
+  handleInputErrors,
+  AuthController.updateProfile,
+);
+router.post(
+  "/update-password",
+  authenticate,
+  body("current_password")
+    .notEmpty()
+    .withMessage("The current password is required"),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("The password is too short, min 8 characteres"),
+  body("password_confirmation").custom((value, { req }) => {
+    if (value != req.body.password) {
+      throw new Error("The Passwords are not equal");
+    }
+    return true;
+  }),
+  handleInputErrors,
+  AuthController.updateCurrentUserPassword,
+);
+router.post(
+  "/check-password",
+  authenticate,
+  body("password").notEmpty().withMessage("The current password is required"),
+
+  handleInputErrors,
+  AuthController.checkPassword,
+);
 export default router;
